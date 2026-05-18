@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SL/VDS Empaque">
+<meta name="theme-color" content="#0f3d2e">
+<title>SL/VDS Empaque 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --green-900: #0a2318;
+  --green-800: #0f3d2e;
+  --green-700: #155c42;
+  --green-600: #1a7a57;
+  --green-500: #1D9E75;
+  --green-400: #3dbf95;
+  --green-300: #6ed4b2;
+  --green-200: #a8e8d4;
+  --green-100: #d4f4ea;
+  --green-50:  #edfaf5;
+  --amber: #EF9F27;
+  --amber-light: #FAC775;
+  --blue: #378ADD;
+  --blue-light: #85B7EB;
+  --red: #E24B4A;
+  --text-primary: #f0f4f2;
+  --text-secondary: #8aaa9a;
+  --text-muted: #4d7060;
+  --surface: #122d22;
+  --surface2: #0f2620;
+  --border: rgba(61,191,149,0.15);
+  --border2: rgba(61,191,149,0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--green-900);color:var(--text-primary);font-family:'Syne',sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* HEADER */
+.header{background:var(--green-800);border-bottom:0.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;padding-top:env(safe-area-inset-top, 12px)}
+.header-left{display:flex;flex-direction:column;gap:2px}
+.app-title{font-size:18px;font-weight:700;letter-spacing:-0.3px;color:var(--green-300)}
+.app-sub{font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:0.5px}
+.season-badge{background:var(--green-700);color:var(--green-300);font-size:11px;padding:4px 10px;border-radius:20px;font-family:'DM Mono',monospace;border:0.5px solid var(--border)}
+
+/* MAIN SCROLL AREA */
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 80px}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--green-800);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0);flex-shrink:0;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;color:var(--text-muted);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;border:none;background:transparent;letter-spacing:0.3px;transition:color .15s}
+.nav-btn.active{color:var(--green-400)}
+.nav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* SECTIONS */
+.section{display:none;padding:16px}
+.section.active{display:block}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.kpi-wide{grid-column:1/-1}
+.kpi{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.kpi-label{font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px}
+.kpi-val{font-size:28px;font-weight:700;line-height:1;color:var(--green-300);letter-spacing:-1px}
+.kpi-val.big{font-size:36px}
+.kpi-sub{font-size:11px;color:var(--text-secondary);margin-top:4px;font-family:'DM Mono',monospace}
+.kpi-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px}
+.kpi-bar-fill{height:3px;border-radius:2px;background:var(--green-500);transition:width .6s ease}
+
+/* SECTION TITLE */
+.sec-title{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:0.5px solid var(--border2)}
+
+/* CHARTS */
+.chart-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.chart-wrap{position:relative;width:100%}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);font-family:'DM Mono',monospace}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:12px;font-family:'DM Mono',monospace}
+.data-table th{text-align:left;padding:8px 6px;color:var(--text-muted);font-weight:500;font-size:10px;letter-spacing:0.5px;border-bottom:0.5px solid var(--border);text-transform:uppercase}
+.data-table td{padding:9px 6px;border-bottom:0.5px solid var(--border2);color:var(--text-secondary)}
+.data-table td.num{text-align:right;color:var(--text-primary);font-variant-numeric:tabular-nums}
+.data-table td.hi{color:var(--green-400)}
+.data-table tr:last-child td{border-bottom:none;color:var(--green-300);font-weight:500}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-family:'DM Mono',monospace}
+.badge-exp{background:rgba(55,138,221,0.15);color:#85B7EB;border:0.5px solid rgba(55,138,221,0.3)}
+.badge-nac{background:rgba(29,158,117,0.15);color:var(--green-400);border:0.5px solid rgba(29,158,117,0.3)}
+
+/* EMPAQUE TIPOS */
+.emp-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.emp-row{display:flex;align-items:center;gap:10px}
+.emp-label{font-size:11px;font-family:'DM Mono',monospace;color:var(--text-secondary);min-width:80px}
+.emp-bar-bg{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.emp-bar-fill{height:6px;border-radius:3px;transition:width .5s ease}
+.emp-num{font-size:11px;font-family:'DM Mono',monospace;color:var(--text-primary);min-width:55px;text-align:right}
+
+/* FORM */
+.form-section{margin-bottom:20px}
+.form-title{font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:0.5px;text-transform:uppercase}
+.field input,.field select{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'DM Mono',monospace;font-size:14px;padding:10px 12px;width:100%;appearance:none;-webkit-appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green-500)}
+.field input::placeholder{color:var(--text-muted)}
+.btn-save{width:100%;background:var(--green-600);color:var(--green-100);border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;margin-top:8px;letter-spacing:0.3px;transition:background .15s}
+.btn-save:active{background:var(--green-700)}
+.btn-danger{background:transparent;border:0.5px solid rgba(226,75,74,0.4);color:#f09595;font-size:12px;font-family:'DM Mono',monospace;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer}
+
+/* ALERT */
+.alert{padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-family:'DM Mono',monospace;margin-bottom:16px;display:none}
+.alert.show{display:block}
+.alert-ok{background:rgba(29,158,117,0.15);color:var(--green-300);border:0.5px solid rgba(29,158,117,0.3)}
+.alert-err{background:rgba(226,75,74,0.1);color:#f09595;border:0.5px solid rgba(226,75,74,0.3)}
+
+/* HISTORIAL */
+.log-item{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px}
+.log-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.log-date{font-size:12px;font-family:'DM Mono',monospace;color:var(--green-400)}
+.log-sem{font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace}
+.log-vals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.log-val{font-size:10px;font-family:'DM Mono',monospace}
+.log-val span{display:block;color:var(--text-muted);margin-bottom:1px;font-size:9px}
+.empty-msg{text-align:center;color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;padding:40px 0}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="app-title">🫑 SL/VDS Empaque</div>
+    <div class="app-sub">TEMPORADA 2026 · 18 HCT · BCS</div>
+  </div>
+  <div class="season-badge" id="acum-badge">— cajas</div>
+</div>
+
+<div class="main">
+  <div id="alert-global" class="alert"></div>
+
+  <!-- RESUMEN -->
+  <div class="section active" id="tab-resumen">
+
+    <!-- ULTIMO DIA -->
+    <div id="ultimo-dia-card" style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:0.8px;text-transform:uppercase">Último día de empaque</div>
+        <div id="ud-fecha" style="font-size:12px;color:var(--green-400);font-family:'DM Mono',monospace"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Corte</div>
+          <div id="ud-corte" style="font-size:20px;font-weight:700;color:var(--text-primary);letter-spacing:-0.5px">—</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Empaque</div>
+          <div id="ud-empaque" style="font-size:20px;font-weight:700;color:var(--green-300);letter-spacing:-0.5px">—</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">% corte/emp</div>
+          <div id="ud-pct" style="font-size:20px;font-weight:700;color:var(--amber);letter-spacing:-0.5px">—</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Acum. semanal</div>
+          <div id="ud-acumsem" style="font-size:18px;font-weight:700;color:var(--text-primary);letter-spacing:-0.5px">—</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Acum. global</div>
+          <div id="ud-acumglobal" style="font-size:18px;font-weight:700;color:var(--green-300);letter-spacing:-0.5px">—</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Cajas × Hct</div>
+          <div id="ud-xhct" style="font-size:18px;font-weight:700;color:var(--text-primary);letter-spacing:-0.5px">—</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Relación</div>
+          <div id="ud-relacion" style="font-size:18px;font-weight:700;color:var(--amber-light);letter-spacing:-0.5px">—</div>
+        </div>
+      </div>
+
+      <!-- Tipos de empaque del día -->
+      <div id="ud-tipos" style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border2);display:none">
+        <div style="font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Desglose del día</div>
+        <div id="ud-tipos-grid" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi kpi-wide">
+        <div class="kpi-label">Empaque global acumulado</div>
+        <div class="kpi-val big" id="kpi-total">—</div>
+        <div class="kpi-sub" id="kpi-sub-total">cajas totales en temporada</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-total" style="width:0%"></div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Cajas × Hct</div>
+        <div class="kpi-val" id="kpi-xhct">—</div>
+        <div class="kpi-sub">sobre 18 hectáreas</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Eficiencia</div>
+        <div class="kpi-val" id="kpi-efic">—</div>
+        <div class="kpi-sub">corte → empaque</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Corte acum.</div>
+        <div class="kpi-val" id="kpi-corte">—</div>
+        <div class="kpi-sub">cajas cortadas</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Prom. diario</div>
+        <div class="kpi-val" id="kpi-prom">—</div>
+        <div class="kpi-sub" id="kpi-prom-sub">— días con empaque</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Relación corte/emp</div>
+        <div class="kpi-val" id="kpi-relacion">—</div>
+        <div class="kpi-sub">cajas cortadas por empacada</div>
+      </div>
+    </div>
+
+    <div class="sec-title">Corte vs empaque diario</div>
+    <div class="chart-card">
+      <div class="legend">
+        <span class="leg"><span class="leg-dot" style="background:#85B7EB"></span>Corte</span>
+        <span class="leg"><span class="leg-dot" style="background:#1D9E75"></span>Empaque</span>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="chart-diario" role="img" aria-label="Corte y empaque diario temporada 2026"></canvas>
+      </div>
+    </div>
+
+    <div class="sec-title">Exportación vs Nacional semanal</div>
+    <div class="chart-card">
+      <div class="legend">
+        <span class="leg"><span class="leg-dot" style="background:#378ADD"></span>Exportación</span>
+        <span class="leg"><span class="leg-dot" style="background:#1D9E75"></span>Nacional</span>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="chart-expnac" role="img" aria-label="Exportación vs Nacional por semana"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEMANAL -->
+  <div class="section" id="tab-semanal">
+    <div class="sec-title">Resumen semanal</div>
+    <div class="chart-card" style="overflow-x:auto">
+      <table class="data-table" id="sem-table"></table>
+    </div>
+  </div>
+
+  <!-- EMPAQUE -->
+  <div class="section" id="tab-empaque">
+    <div class="sec-title">Distribución por tipo — acumulado</div>
+    <div class="emp-list" id="emp-list"></div>
+    <div class="chart-card">
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chart-dona" role="img" aria-label="Distribución por tipo de empaque"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPTURA -->
+  <div class="section" id="tab-captura">
+    <div class="form-section">
+      <div class="form-title">Fecha y semana</div>
+      <div class="form-grid">
+        <div class="field"><label>Fecha</label><input type="date" id="f-fecha"></div>
+        <div class="field"><label>Semana #</label><input type="number" id="f-semana" min="1" max="15" placeholder="7"></div>
+        <div class="field"><label>Día</label>
+          <select id="f-dia">
+            <option>LUNES</option><option>MARTES</option><option>MIÉRCOLES</option>
+            <option>JUEVES</option><option>VIERNES</option><option>SÁBADO</option><option>DOMINGO</option>
+          </select>
+        </div>
+        <div class="field"><label>Destino</label>
+          <select id="f-destino"><option value="EXP">Exportación</option><option value="NAC">Nacional</option><option value="AMBOS">Ambos</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-title">Producción</div>
+      <div class="form-grid">
+        <div class="field"><label>Corte</label><input type="number" id="f-corte" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>Empaque total</label><input type="number" id="f-empaque" placeholder="0" inputmode="numeric"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-title">Desglose de empaque</div>
+      <div class="form-grid">
+        <div class="field"><label>JUMBO</label><input type="number" id="f-jumbo" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>XL</label><input type="number" id="f-xl" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>L</label><input type="number" id="f-l" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>M</label><input type="number" id="f-m" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>S</label><input type="number" id="f-s" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>EU JUMBO</label><input type="number" id="f-eujumbo" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>EU XL</label><input type="number" id="f-euxl" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>RPC 65</label><input type="number" id="f-rpc65" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>RPC 55</label><input type="number" id="f-rpc55" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>Choice</label><input type="number" id="f-choice" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>Ch Rojo</label><input type="number" id="f-chrojo" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>Ch Suntan</label><input type="number" id="f-chsuntan" placeholder="0" inputmode="numeric"></div>
+        <div class="field full"><label>Nacional</label><input type="number" id="f-nacional" placeholder="0" inputmode="numeric"></div>
+      </div>
+    </div>
+
+    <button class="btn-save" id="btn-guardar">Guardar registro</button>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="section" id="tab-historial">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="sec-title" style="margin:0;border:none;padding:0">Registros del dashboard</div>
+      <button class="btn-danger" id="btn-limpiar">Limpiar todo</button>
+    </div>
+    <div id="log-list"></div>
+  </div>
+  <!-- CARGAS -->
+  <div class="section" id="tab-cargas">
+    <div class="kpi-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:16px">
+      <div class="kpi">
+        <div class="kpi-label">Total cargas</div>
+        <div class="kpi-val" style="font-size:28px" id="c-total">—</div>
+        <div class="kpi-sub">manifiestos enviados</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Cajas enviadas</div>
+        <div class="kpi-val" style="font-size:22px" id="c-cajas">—</div>
+        <div class="kpi-sub">acumulado temporada</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Pallets total</div>
+        <div class="kpi-val" style="font-size:22px" id="c-pallets">—</div>
+        <div class="kpi-sub" id="c-pallets-sub">prom. — × carga</div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-title">Nueva carga</div>
+      <div class="form-grid">
+        <div class="field"><label>Fecha salida</label><input type="date" id="c-fecha-sale"></div>
+        <div class="field"><label>Fecha llegada</label><input type="date" id="c-fecha-llega"></div>
+        <div class="field"><label>Cajas</label><input type="number" id="c-cajas-input" placeholder="0" inputmode="numeric"></div>
+        <div class="field"><label>Pallets</label><input type="number" id="c-pallets-input" placeholder="0.0" step="0.1" inputmode="decimal"></div>
+        <div class="field full"><label>Manifiesto</label><input type="text" id="c-manifiesto" placeholder="M T-0000"></div>
+      </div>
+      <button class="btn-save" id="btn-carga" style="margin-top:8px">Registrar carga</button>
+    </div>
+
+    <div class="sec-title">Registro de cargas</div>
+    <div class="chart-card" style="overflow-x:auto;padding:12px 8px">
+      <table class="data-table" id="cargas-table"></table>
+    </div>
+  </div>
+
+  <!-- DIARIO -->
+  <div class="section" id="tab-diario">
+    <div class="sec-title">Registro diario de corte y empaque</div>
+    <div class="chart-card" style="overflow-x:auto;padding:12px 8px">
+      <table class="data-table" id="diario-table"></table>
+    </div>
+  </div>
+
+  <!-- RESUMEN SEMANAL -->
+  <div class="section" id="tab-resum-sem">
+    <div id="resum-sem-content"></div>
+  </div>
+
+  <!-- MENSUAL -->
+  <div class="section" id="tab-mensual">
+    <div id="mensual-content"></div>
+  </div>
+
+</div>
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="resumen">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Inicio
+  </button>
+  <button class="nav-btn" data-tab="diario">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Diario
+  </button>
+  <button class="nav-btn" data-tab="resum-sem">
+    <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    x Semana
+  </button>
+  <button class="nav-btn" data-tab="mensual">
+    <svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    Mensual
+  </button>
+  <button class="nav-btn" data-tab="semanal">
+    <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18"/></svg>
+    Semanas
+  </button>
+  <button class="nav-btn" data-tab="empaque">
+    <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    Empaque
+  </button>
+  <button class="nav-btn" data-tab="captura">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+    Captura
+  </button>
+  <button class="nav-btn" data-tab="cargas">
+    <svg viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    Cargas
+  </button>
+  <button class="nav-btn" data-tab="historial">
+    <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    Historial
+  </button>
+</nav>
+
+<script>
+const STORAGE_KEY = 'bell_pepper_2026_vds';
+const STORAGE_CARGAS = 'bell_pepper_2026_cargas';
+
+const CARGAS_BASE = [
+  {id:1,sale:'2026-04-13',llega:'2026-04-15',cajas:1508,manifiesto:'M TDS-001',pallets:26.93},
+  {id:2,sale:'2026-04-17',llega:'2026-04-19',cajas:1680,manifiesto:'M TSD-4511',pallets:30},
+  {id:3,sale:'2026-04-19',llega:'2026-04-21',cajas:1680,manifiesto:'M T-4512',pallets:30},
+  {id:4,sale:'2026-04-20',llega:'2026-04-22',cajas:1680,manifiesto:'M T-4513',pallets:30},
+  {id:5,sale:'2026-04-21',llega:'2026-04-23',cajas:1680,manifiesto:'M T-4514',pallets:30},
+  {id:6,sale:'2026-04-23',llega:'2026-04-25',cajas:1568,manifiesto:'M T-4515',pallets:28},
+  {id:7,sale:'2026-04-23',llega:'2026-04-25',cajas:1568,manifiesto:'M T-4516',pallets:28},
+  {id:8,sale:'2026-04-24',llega:'2026-04-26',cajas:1568,manifiesto:'M T-4517',pallets:28},
+  {id:9,sale:'2026-04-26',llega:'2026-04-28',cajas:1568,manifiesto:'M T-4518',pallets:28},
+  {id:10,sale:'2026-04-27',llega:'2026-04-29',cajas:1568,manifiesto:'M T-4519',pallets:28},
+  {id:11,sale:'2026-04-28',llega:'2026-04-30',cajas:1568,manifiesto:'M T-4520',pallets:28},
+  {id:12,sale:'2026-04-29',llega:'2026-05-01',cajas:1568,manifiesto:'M T-4395',pallets:28},
+  {id:13,sale:'2026-04-30',llega:'2026-05-02',cajas:1556,manifiesto:'M T-4394',pallets:27.79},
+  {id:14,sale:'2026-05-01',llega:'2026-05-03',cajas:1526,manifiesto:'M T-4396',pallets:27.25},
+  {id:15,sale:'2026-05-02',llega:'2026-05-04',cajas:1568,manifiesto:'M T-4397',pallets:28},
+  {id:16,sale:'2026-05-03',llega:'2026-05-05',cajas:1532,manifiesto:'M T-4912',pallets:27.36},
+  {id:17,sale:'2026-05-05',llega:'2026-05-07',cajas:1520,manifiesto:'M T-4913',pallets:27.14},
+  {id:18,sale:'2026-05-06',llega:'2026-05-08',cajas:1508,manifiesto:'M T-4914',pallets:26.93},
+  {id:19,sale:'2026-05-07',llega:'2026-05-09',cajas:1282,manifiesto:'M T-4915',pallets:22.89},
+  {id:20,sale:'2026-05-08',llega:'2026-05-10',cajas:1436,manifiesto:'M T-4916',pallets:25.64},
+  {id:21,sale:'2026-05-09',llega:'2026-05-11',cajas:1568,manifiesto:'M T-4917',pallets:28},
+  {id:22,sale:'2026-05-09',llega:'2026-05-11',cajas:1568,manifiesto:'M T-4918',pallets:28},
+  {id:23,sale:'2026-05-10',llega:'2026-05-12',cajas:1454,manifiesto:'M T-4919',pallets:25.96},
+  {id:24,sale:'2026-05-11',llega:'2026-05-13',cajas:1544,manifiesto:'M T-4920',pallets:27.57},
+  {id:25,sale:'2026-05-12',llega:'2026-05-14',cajas:1466,manifiesto:'M T-4921',pallets:26.18},
+  {id:26,sale:'2026-05-13',llega:'2026-05-15',cajas:1460,manifiesto:'M T-4922',pallets:26.07},
+  {id:27,sale:'2026-05-13',llega:'2026-05-15',cajas:1568,manifiesto:'M T-4923',pallets:28},
+  {id:28,sale:'2026-05-14',llega:'2026-05-16',cajas:1424,manifiesto:'M T-4924',pallets:25.43},
+  {id:29,sale:'2026-05-14',llega:'2026-05-16',cajas:1568,manifiesto:'M T-4925',pallets:28},
+  {id:30,sale:'2026-05-15',llega:'2026-05-17',cajas:1448,manifiesto:'M T-4926',pallets:25.86},
+  {id:31,sale:'2026-05-16',llega:'2026-05-18',cajas:1508,manifiesto:'M T-5112',pallets:26.93},
+  {id:32,sale:'2026-05-16',llega:'2026-05-18',cajas:1568,manifiesto:'M T-5113',pallets:28},
+];
+
+const HIST = [
+  {sem:1,dia:'VIERNES',fecha:'2026-04-11',corte:460,empaque:0,exp:0,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:0,chrojo:0,chsuntan:0,nacional:0},
+  {sem:1,dia:'SÁBADO',fecha:'2026-04-12',corte:314,empaque:0,exp:0,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:0,chrojo:0,chsuntan:0,nacional:0},
+  {sem:1,dia:'DOMINGO',fecha:'2026-04-13',corte:530,empaque:1508,exp:0,nac:1508,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:0,chrojo:0,chsuntan:0,nacional:1508},
+  {sem:2,dia:'MIÉRCOLES',fecha:'2026-04-16',corte:920,empaque:826,exp:826,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:826,chrojo:0,chsuntan:0,nacional:0},
+  {sem:2,dia:'JUEVES',fecha:'2026-04-17',corte:990,empaque:943,exp:943,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:943,chrojo:0,chsuntan:0,nacional:0},
+  {sem:2,dia:'VIERNES',fecha:'2026-04-18',corte:1166,empaque:1079,exp:1079,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:1079,chrojo:0,chsuntan:0,nacional:0},
+  {sem:2,dia:'SÁBADO',fecha:'2026-04-19',corte:1930,empaque:1749,exp:1749,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:1749,chrojo:0,chsuntan:0,nacional:0},
+  {sem:2,dia:'DOMINGO',fecha:'2026-04-20',corte:663,empaque:563,exp:563,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:563,chrojo:0,chsuntan:0,nacional:0},
+  {sem:3,dia:'LUNES',fecha:'2026-04-21',corte:1906,empaque:1581,exp:1581,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:1581,chrojo:0,chsuntan:0,nacional:0},
+  {sem:3,dia:'MARTES',fecha:'2026-04-22',corte:1875,empaque:1357,exp:1357,nac:0,jumbo:51,xl:104,l:52,m:58,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:1092,chrojo:0,chsuntan:0,nacional:0},
+  {sem:3,dia:'MIÉRCOLES',fecha:'2026-04-23',corte:2738,empaque:2002,exp:2002,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:2002,chrojo:0,chsuntan:0,nacional:0},
+  {sem:3,dia:'JUEVES',fecha:'2026-04-24',corte:2302,empaque:1382,exp:1382,nac:0,jumbo:25,xl:72,l:52,m:19,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:1214,chrojo:0,chsuntan:0,nacional:0},
+  {sem:3,dia:'VIERNES',fecha:'2026-04-25',corte:2242,empaque:1376,exp:1376,nac:0,jumbo:40,xl:71,l:94,m:41,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:1130,chrojo:0,chsuntan:0,nacional:0},
+  {sem:3,dia:'SÁBADO',fecha:'2026-04-26',corte:2484,empaque:1617,exp:1617,nac:0,jumbo:67,xl:318,l:168,m:91,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:973,chrojo:0,chsuntan:0,nacional:0},
+  {sem:4,dia:'LUNES',fecha:'2026-04-28',corte:2180,empaque:1526,exp:1526,nac:0,jumbo:70,xl:232,l:230,m:116,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:878,chrojo:0,chsuntan:0,nacional:0},
+  {sem:4,dia:'MARTES',fecha:'2026-04-29',corte:3150,empaque:2064,exp:2064,nac:0,jumbo:48,xl:306,l:214,m:70,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:1426,chrojo:0,chsuntan:0,nacional:0},
+  {sem:4,dia:'MIÉRCOLES',fecha:'2026-04-30',corte:2484,empaque:1843,exp:1843,nac:0,jumbo:4,xl:90,l:196,m:42,s:0,eujumbo:19,euxl:125,rpc65:0,rpc55:0,choice:1367,chrojo:0,chsuntan:0,nacional:0},
+  {sem:4,dia:'JUEVES',fecha:'2026-05-01',corte:1659,empaque:1158,exp:1158,nac:0,jumbo:0,xl:34,l:153,m:35,s:0,eujumbo:124,euxl:169,rpc65:0,rpc55:0,choice:643,chrojo:0,chsuntan:0,nacional:0},
+  {sem:4,dia:'VIERNES',fecha:'2026-05-02',corte:2604,empaque:1638,exp:1638,nac:0,jumbo:197,xl:333,l:171,m:95,s:0,eujumbo:7,euxl:6,rpc65:0,rpc55:0,choice:829,chrojo:0,chsuntan:0,nacional:0},
+  {sem:4,dia:'SÁBADO',fecha:'2026-05-03',corte:2847,empaque:1802,exp:1802,nac:0,jumbo:72,xl:192,l:276,m:152,s:0,eujumbo:108,euxl:221,rpc65:0,rpc55:0,choice:781,chrojo:0,chsuntan:0,nacional:0},
+  {sem:4,dia:'DOMINGO',fecha:'2026-05-04',corte:136,empaque:0,exp:136,nac:0,jumbo:0,xl:0,l:0,m:0,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:0,chrojo:0,chsuntan:0,nacional:0},
+  {sem:5,dia:'LUNES',fecha:'2026-05-05',corte:2308,empaque:1384,exp:1384,nac:0,jumbo:60,xl:145,l:183,m:99,s:0,eujumbo:92,euxl:279,rpc65:0,rpc55:0,choice:429,chrojo:97,chsuntan:0,nacional:0},
+  {sem:5,dia:'MARTES',fecha:'2026-05-06',corte:2335,empaque:1346,exp:1346,nac:0,jumbo:203,xl:0,l:221,m:70,s:0,eujumbo:0,euxl:496,rpc65:0,rpc55:0,choice:309,chrojo:47,chsuntan:0,nacional:0},
+  {sem:5,dia:'MIÉRCOLES',fecha:'2026-05-07',corte:3703,empaque:1754,exp:1754,nac:0,jumbo:58,xl:28,l:0,m:52,s:0,eujumbo:194,euxl:4,rpc65:331,rpc55:655,choice:432,chrojo:0,chsuntan:0,nacional:0},
+  {sem:5,dia:'JUEVES',fecha:'2026-05-08',corte:3757,empaque:1981,exp:1981,nac:0,jumbo:26,xl:205,l:0,m:77,s:0,eujumbo:279,euxl:675,rpc65:74,rpc55:90,choice:492,chrojo:63,chsuntan:0,nacional:0},
+  {sem:5,dia:'VIERNES',fecha:'2026-05-09',corte:3434,empaque:2703,exp:2703,nac:0,jumbo:224,xl:685,l:339,m:77,s:0,eujumbo:155,euxl:202,rpc65:0,rpc55:0,choice:337,chrojo:166,chsuntan:518,nacional:0},
+  {sem:5,dia:'SÁBADO',fecha:'2026-05-10',corte:3065,empaque:2233,exp:2233,nac:0,jumbo:24,xl:256,l:235,m:39,s:0,eujumbo:216,euxl:438,rpc65:0,rpc55:0,choice:367,chrojo:154,chsuntan:504,nacional:0},
+  {sem:6,dia:'LUNES',fecha:'2026-05-12',corte:3421,empaque:2318,exp:2318,nac:0,jumbo:40,xl:445,l:330,m:39,s:0,eujumbo:359,euxl:577,rpc65:0,rpc55:0,choice:417,chrojo:33,chsuntan:78,nacional:0},
+  {sem:6,dia:'MARTES',fecha:'2026-05-13',corte:3303,empaque:2118,exp:2118,nac:0,jumbo:0,xl:14,l:151,m:54,s:0,eujumbo:285,euxl:700,rpc65:0,rpc55:0,choice:148,chrojo:355,chsuntan:411,nacional:0},
+  {sem:6,dia:'MIÉRCOLES',fecha:'2026-05-14',corte:4744,empaque:3165,exp:3165,nac:0,jumbo:0,xl:0,l:220,m:34,s:0,eujumbo:362,euxl:775,rpc65:0,rpc55:0,choice:208,chrojo:1079,chsuntan:487,nacional:0},
+  {sem:6,dia:'JUEVES',fecha:'2026-05-15',corte:5288,empaque:3359,exp:3359,nac:0,jumbo:70,xl:326,l:286,m:109,s:0,eujumbo:337,euxl:700,rpc65:0,rpc55:0,choice:313,chrojo:929,chsuntan:289,nacional:0},
+  {sem:6,dia:'VIERNES',fecha:'2026-05-16',corte:4776,empaque:3247,exp:3247,nac:0,jumbo:707,xl:752,l:375,m:138,s:0,eujumbo:262,euxl:316,rpc65:0,rpc55:0,choice:300,chrojo:185,chsuntan:212,nacional:0},
+  {sem:6,dia:'SÁBADO',fecha:'2026-05-17',corte:4368,empaque:3819,exp:3819,nac:0,jumbo:1102,xl:1054,l:343,m:45,s:0,eujumbo:0,euxl:0,rpc65:0,rpc55:0,choice:179,chrojo:185,chsuntan:911,nacional:0},
+];
+
+const SEM_BASE = [
+  {sem:1,corte:1304,empaque:1508,exp:0,nac:1508},
+  {sem:2,corte:5669,empaque:5160,exp:5160,nac:0},
+  {sem:3,corte:13547,empaque:9315,exp:9315,nac:0},
+  {sem:4,corte:15060,empaque:10167,exp:10167,nac:0},
+  {sem:5,corte:18602,empaque:11401,exp:11401,nac:0},
+  {sem:6,corte:25900,empaque:18026,exp:18026,nac:0},
+];
+
+const META_HCT = 4000;
+
+function loadExtra(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch(e){return[]}}
+function saveExtra(a){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(a))}catch(e){}}
+function allData(){return[...HIST,...loadExtra()]}
+
+function loadCargas(){try{return JSON.parse(localStorage.getItem(STORAGE_CARGAS)||'[]')}catch(e){return[]}}
+function saveCargas(a){try{localStorage.setItem(STORAGE_CARGAS,JSON.stringify(a))}catch(e){}}
+function allCargas(){return[...CARGAS_BASE,...loadCargas()]}
+
+function calcKPIs(data){
+  const tc=data.reduce((s,r)=>s+r.corte,0);
+  const te=data.reduce((s,r)=>s+r.empaque,0);
+  const dias=data.filter(r=>r.empaque>0).length;
+  return{tc,te,pct:tc>0?(te/tc*100):0,xhct:(te/18),promDia:dias>0?Math.round(te/dias):0,dias};
+}
+
+let cDiario,cExpNac,cDona,cMensual;
+
+function renderMensual(){
+  var data=allData().filter(function(r){return r.corte>0||r.empaque>0;});
+  var MESES_LABEL=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var MESES_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var TEMPORADA=['Abril','Mayo','Junio','Julio','Agosto','Septiembre'];
+  var COLORS={Abril:'#378ADD',Mayo:'#1D9E75',Junio:'#639922',Julio:'#BA7517',Agosto:'#EF9F27',Septiembre:'#E24B4A'};
+  var mesMap={};
+  var acumGlobalRun=0;
+  var semRun={};
+  data.forEach(function(r){
+    if(!r.fecha)return;
+    var m=parseInt(r.fecha.split('-')[1])-1;
+    var label=MESES_LABEL[m];
+    if(!mesMap[label])mesMap[label]=[];
+    mesMap[label].push(r);
+  });
+  var totalEmp=data.reduce(function(s,r){return s+r.empaque;},0);
+  var totalCorte=data.reduce(function(s,r){return s+r.corte;},0);
+  var xhctTotal=(totalEmp/18).toFixed(1);
+  var pctTotal=totalCorte>0?(totalEmp/totalCorte*100).toFixed(1):'--';
+  var html='<div style="padding:16px">';
+  html+='<div class="sec-title">Resumen mensual</div>';
+  html+='<div style="overflow-x:auto;border-radius:var(--radius-sm);border:0.5px solid var(--border);margin-bottom:20px">';
+  html+='<table class="data-table" style="min-width:340px">';
+  html+='<tr style="font-size:10px"><th>Mes</th><th class="num">Cajas</th><th class="num">Cajas x Hct</th><th class="num">% Temporada</th><th class="num">% Efic.</th></tr>';
+  TEMPORADA.forEach(function(mes){
+    var dias=mesMap[mes]||[];
+    var color=COLORS[mes]||'#1D9E75';
+    var te=dias.reduce(function(s,r){return s+r.empaque;},0);
+    var tc=dias.reduce(function(s,r){return s+r.corte;},0);
+    var xhct=(te/18).toFixed(1);
+    var pctTemp=totalEmp>0?(te/totalEmp*100).toFixed(1):'0.0';
+    var pctEfic=tc>0?(te/tc*100).toFixed(1):'--';
+    var isEmpty=te===0;
+    html+='<tr style="font-size:12px;opacity:'+(isEmpty?'0.4':'1')+';">';
+    html+='<td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+color+';margin-right:6px;vertical-align:middle"></span>'+mes+'</td>';
+    html+='<td class="num" style="color:var(--green-400)">'+(isEmpty?'--':te.toLocaleString())+'</td>';
+    html+='<td class="num">'+(isEmpty?'--':xhct)+'</td>';
+    html+='<td class="num">'+(isEmpty?'--':pctTemp+'%')+'</td>';
+    html+='<td class="num">'+(isEmpty?'--':pctEfic+'%')+'</td>';
+    html+='</tr>';
+  });
+  html+='<tr style="font-size:12px;color:var(--green-300);font-weight:500;border-top:0.5px solid var(--border)">';
+  html+='<td>Total</td>';
+  html+='<td class="num">'+totalEmp.toLocaleString()+'</td>';
+  html+='<td class="num">'+xhctTotal+'</td>';
+  html+='<td class="num">100%</td>';
+  html+='<td class="num">'+pctTotal+'%</td>';
+  html+='</tr></table></div>';
+  html+='<div class="sec-title">Detalle diario por mes</div>';
+  TEMPORADA.forEach(function(mes){
+    var dias=mesMap[mes]||[];
+    var color=COLORS[mes]||'#1D9E75';
+    var tc=dias.reduce(function(s,r){return s+r.corte;},0);
+    var te=dias.reduce(function(s,r){return s+r.empaque;},0);
+    var xhct=(te/18).toFixed(1);
+    var pctMes=tc>0?(te/tc*100).toFixed(1):'--';
+    var isEmpty=te===0;
+    html+='<div style="margin-bottom:20px">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    html+='<div style="display:flex;align-items:center;gap:8px">';
+    html+='<div style="width:10px;height:10px;border-radius:2px;background:'+color+'"></div>';
+    html+='<div style="font-size:13px;font-weight:500;color:var(--green-300)">'+mes+'</div></div>';
+    if(!isEmpty){html+='<div style="font-size:11px;font-family:DM Mono,monospace;color:var(--text-muted)">'+te.toLocaleString()+' cajas · ×Hct '+xhct+'</div>';}
+    html+='</div>';
+    if(isEmpty){
+      html+='<div style="background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:12px 16px;font-size:12px;color:var(--text-muted);opacity:0.5">Sin producción registrada</div>';
+    } else {
+      html+='<div style="overflow-x:auto;border-radius:var(--radius-sm);border:0.5px solid var(--border)">';
+      html+='<table class="data-table" style="min-width:480px"><tr style="font-size:10px">';
+      html+='<th>#</th><th>Día</th><th>Fecha</th>';
+      html+='<th class="num" style="min-width:46px">Corte</th>';
+      html+='<th class="num" style="min-width:52px">Empaque</th>';
+      html+='<th class="num" style="min-width:36px">%</th>';
+      html+='<th class="num" style="min-width:52px">Ac.Sem</th>';
+      html+='<th class="num" style="min-width:52px">Ac.Mes</th>';
+      html+='<th class="num" style="min-width:44px">×Hct</th>';
+      html+='<th class="num" style="min-width:44px">Relac.</th>';
+      html+='</tr>';
+      var acumMes=0;
+      dias.forEach(function(r,idx){
+        var sem=r.sem||r.semana||0;
+        semRun[sem]=(semRun[sem]||0)+r.empaque;
+        acumGlobalRun+=r.empaque;
+        acumMes+=r.empaque;
+        var pct=r.corte>0?(r.empaque/r.corte*100).toFixed(0)+'%':'--';
+        var relac=r.empaque>0?(r.corte/r.empaque).toFixed(2):'--';
+        var parts=r.fecha.split('-');
+        var fechaStr=parseInt(parts[2])+' '+MESES_SHORT[parseInt(parts[1])-1];
+        var diaStr=(r.dia||'').slice(0,3);
+        html+='<tr style="font-size:11px">';
+        html+='<td>'+(idx+1)+'</td><td>'+diaStr+'</td><td>'+fechaStr+'</td>';
+        html+='<td class="num">'+r.corte.toLocaleString()+'</td>';
+        html+='<td class="num" style="color:var(--green-400)">'+(r.empaque>0?r.empaque.toLocaleString():'--')+'</td>';
+        html+='<td class="num">'+pct+'</td>';
+        html+='<td class="num">'+(semRun[sem]||0).toLocaleString()+'</td>';
+        html+='<td class="num">'+acumMes.toLocaleString()+'</td>';
+        html+='<td class="num">'+(acumGlobalRun/18).toFixed(1)+'</td>';
+        html+='<td class="num" style="color:var(--amber-light)">'+relac+'</td>';
+        html+='</tr>';
+      });
+      html+='<tr style="font-size:11px;color:var(--green-300);font-weight:500;border-top:0.5px solid var(--border)">';
+      html+='<td colspan="3">Total '+mes+'</td>';
+      html+='<td class="num">'+tc.toLocaleString()+'</td>';
+      html+='<td class="num">'+te.toLocaleString()+'</td>';
+      html+='<td class="num">'+pctMes+'%</td><td></td>';
+      html+='<td class="num">'+te.toLocaleString()+'</td>';
+      html+='<td class="num">'+xhct+'</td>';
+      html+='<td class="num" style="color:var(--amber)">'+(te>0?(tc/te).toFixed(2):'--')+'</td>';
+      html+='</tr></table></div>';
+    }
+    html+='</div>';
+  });
+  html+='</div>';
+  document.getElementById('mensual-content').innerHTML=html;
+}
+function renderResumSemanal(){
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const extra=loadExtra();
+
+  // Build sem→days map from all data
+  const allD=allData();
+  const semMap={};
+  allD.forEach(r=>{
+    const sem=r.sem||r.semana||0;
+    if(!semMap[sem])semMap[sem]=[];
+    semMap[sem].push(r);
+  });
+
+  // Static data from original file per sem
+  const SEM_DATA = {
+    1:[
+      {dia:'LUNES',fecha:'2026-04-07',corte:0,empaque:0,exp:0,nac:0},
+      {dia:'MARTES',fecha:'2026-04-08',corte:0,empaque:0,exp:0,nac:0},
+      {dia:'MIÉRCOLES',fecha:'2026-04-09',corte:0,empaque:0,exp:0,nac:0},
+      {dia:'JUEVES',fecha:'2026-04-10',corte:0,empaque:0,exp:0,nac:0},
+      {dia:'VIERNES',fecha:'2026-04-11',corte:460,empaque:0,exp:0,nac:0},
+      {dia:'SÁBADO',fecha:'2026-04-12',corte:314,empaque:0,exp:0,nac:0},
+      {dia:'DOMINGO',fecha:'2026-04-13',corte:530,empaque:1508,exp:0,nac:1508},
+    ],
+    2:[
+      {dia:'LUNES',fecha:'2026-04-14',corte:0,empaque:0,exp:0,nac:0},
+      {dia:'MARTES',fecha:'2026-04-15',corte:0,empaque:0,exp:0,nac:0},
+      {dia:'MIÉRCOLES',fecha:'2026-04-16',corte:920,empaque:826,exp:826,nac:0},
+      {dia:'JUEVES',fecha:'2026-04-17',corte:990,empaque:943,exp:943,nac:0},
+      {dia:'VIERNES',fecha:'2026-04-18',corte:1166,empaque:1079,exp:1079,nac:0},
+      {dia:'SÁBADO',fecha:'2026-04-19',corte:1930,empaque:1749,exp:1749,nac:0},
+      {dia:'DOMINGO',fecha:'2026-04-20',corte:663,empaque:563,exp:563,nac:0},
+    ],
+    3:[
+      {dia:'LUNES',fecha:'2026-04-21',corte:1906,empaque:1581,exp:1581,nac:0},
+      {dia:'MARTES',fecha:'2026-04-22',corte:1875,empaque:1357,exp:1357,nac:0},
+      {dia:'MIÉRCOLES',fecha:'2026-04-23',corte:2738,empaque:2002,exp:2002,nac:0},
+      {dia:'JUEVES',fecha:'2026-04-24',corte:2302,empaque:1382,exp:1382,nac:0},
+      {dia:'VIERNES',fecha:'2026-04-25',corte:2242,empaque:1376,exp:1376,nac:0},
+      {dia:'SÁBADO',fecha:'2026-04-26',corte:2484,empaque:1617,exp:1617,nac:0},
+      {dia:'DOMINGO',fecha:'2026-04-27',corte:0,empaque:0,exp:0,nac:0},
+    ],
+    4:[
+      {dia:'LUNES',fecha:'2026-04-28',corte:2180,empaque:1526,exp:1526,nac:0},
+      {dia:'MARTES',fecha:'2026-04-29',corte:3150,empaque:2064,exp:2064,nac:0},
+      {dia:'MIÉRCOLES',fecha:'2026-04-30',corte:2484,empaque:1843,exp:1843,nac:0},
+      {dia:'JUEVES',fecha:'2026-05-01',corte:1659,empaque:1158,exp:1158,nac:0},
+      {dia:'VIERNES',fecha:'2026-05-02',corte:2604,empaque:1638,exp:1638,nac:0},
+      {dia:'SÁBADO',fecha:'2026-05-03',corte:2847,empaque:1802,exp:1802,nac:0},
+      {dia:'DOMINGO',fecha:'2026-05-04',corte:136,empaque:0,exp:136,nac:0},
+    ],
+    5:[
+      {dia:'LUNES',fecha:'2026-05-05',corte:2308,empaque:1384,exp:1384,nac:0,relac:1.668},
+      {dia:'MARTES',fecha:'2026-05-06',corte:2335,empaque:1346,exp:1346,nac:0,relac:1.735},
+      {dia:'MIÉRCOLES',fecha:'2026-05-07',corte:3703,empaque:1754,exp:1754,nac:0,relac:2.111},
+      {dia:'JUEVES',fecha:'2026-05-08',corte:3757,empaque:1981,exp:1981,nac:0,relac:1.897},
+      {dia:'VIERNES',fecha:'2026-05-09',corte:3434,empaque:2703,exp:2703,nac:0,relac:1.270},
+      {dia:'SÁBADO',fecha:'2026-05-10',corte:3065,empaque:2233,exp:2233,nac:0,relac:1.373},
+      {dia:'DOMINGO',fecha:'2026-05-11',corte:0,empaque:0,exp:0,nac:0},
+    ],
+    6:[
+      {dia:'LUNES',fecha:'2026-05-12',corte:3421,empaque:2318,exp:2318,nac:0,relac:1.476},
+      {dia:'MARTES',fecha:'2026-05-13',corte:3303,empaque:2118,exp:2118,nac:0,relac:1.559},
+      {dia:'MIÉRCOLES',fecha:'2026-05-14',corte:4744,empaque:3165,exp:3165,nac:0,relac:1.499},
+      {dia:'JUEVES',fecha:'2026-05-15',corte:5288,empaque:3359,exp:3359,nac:0,relac:1.574},
+      {dia:'VIERNES',fecha:'2026-05-16',corte:4776,empaque:3247,exp:3247,nac:0,relac:1.471},
+      {dia:'SÁBADO',fecha:'2026-05-17',corte:4368,empaque:3819,exp:3819,nac:0,relac:1.144},
+      {dia:'DOMINGO',fecha:'2026-05-18',corte:0,empaque:0,exp:0,nac:0},
+    ],
+  };
+
+  // Add extra captured days to corresponding sem
+  extra.forEach(r=>{
+    const sem=r.semana;
+    if(!SEM_DATA[sem])SEM_DATA[sem]=[];
+    SEM_DATA[sem].push({dia:r.dia,fecha:r.fecha,corte:r.corte,empaque:r.empaque,exp:(r.empaque-(r.nacional||0)),nac:(r.nacional||0),relac:r.empaque>0?(r.corte/r.empaque):0,isExtra:true});
+  });
+
+  const sems=Object.keys(SEM_DATA).sort((a,b)=>+a-+b);
+  let html='';
+
+  sems.forEach(sem=>{
+    const days=SEM_DATA[sem];
+    const tc=days.reduce((s,d)=>s+d.corte,0);
+    const te=days.reduce((s,d)=>s+d.empaque,0);
+    const texp=days.reduce((s,d)=>s+(d.exp||0),0);
+    const tnac=days.reduce((s,d)=>s+(d.nac||0),0);
+    const pctSem=tc>0?(te/tc*100).toFixed(1):'—';
+    const relacSem=te>0?(tc/te).toFixed(3):'—';
+    const xhct=(te/18).toFixed(1);
+
+    html+=`
+    <div style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:500;color:var(--green-300)">Semana ${sem}</div>
+        <div style="display:flex;gap:8px">
+          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text-muted)">Total: <span style="color:var(--green-400)">${te.toLocaleString()}</span> cajas</span>
+        </div>
+      </div>
+      <div style="overflow-x:auto;border-radius:var(--radius-sm);border:0.5px solid var(--border)">
+        <table class="data-table" style="min-width:520px">
+          <tr style="font-size:10px">
+            <th style="min-width:52px">Día</th>
+            <th style="min-width:52px">Fecha</th>
+            <th class="num" style="min-width:46px">Corte</th>
+            <th class="num" style="min-width:52px">Empaque</th>
+            <th class="num" style="min-width:36px">%</th>
+            <th class="num" style="min-width:44px">Relac.</th>
+            <th class="num" style="min-width:44px">Exp</th>
+            <th class="num" style="min-width:44px">Nac</th>
+            <th class="num" style="min-width:44px">Total</th>
+          </tr>`;
+
+    days.forEach(d=>{
+      const pct=d.corte>0?(d.empaque/d.corte*100).toFixed(0)+'%':'—';
+      const relac=d.relac?d.relac.toFixed(3):(d.empaque>0?(d.corte/d.empaque).toFixed(3):'—');
+      const [y,m,day]=d.fecha.split('-');
+      const fechaStr=`${parseInt(day)} ${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)-1]}`;
+      const isEmpty=d.corte===0&&d.empaque===0;
+      const rowC=isEmpty?'color:var(--text-muted)':'';
+      html+=`<tr style="font-size:11px;${rowC}">
+        <td>${(d.dia||'').slice(0,3)}</td>
+        <td>${fechaStr}</td>
+        <td class="num">${d.corte>0?d.corte.toLocaleString():'—'}</td>
+        <td class="num" style="color:${isEmpty?'inherit':'var(--green-400)'}">${d.empaque>0?d.empaque.toLocaleString():'—'}</td>
+        <td class="num">${isEmpty?'—':pct}</td>
+        <td class="num" style="color:var(--amber-light)">${isEmpty?'—':relac}</td>
+        <td class="num">${(d.exp||0)>0?(d.exp||0).toLocaleString():'—'}</td>
+        <td class="num">${(d.nac||0)>0?(d.nac||0).toLocaleString():'—'}</td>
+        <td class="num">${d.empaque>0?d.empaque.toLocaleString():'—'}</td>
+      </tr>`;
+    });
+
+    html+=`
+          <tr style="font-size:11px;color:var(--green-300);font-weight:500;border-top:0.5px solid var(--border)">
+            <td colspan="2">Total</td>
+            <td class="num">${tc.toLocaleString()}</td>
+            <td class="num">${te.toLocaleString()}</td>
+            <td class="num">${pctSem}%</td>
+            <td class="num" style="color:var(--amber)">${relacSem}</td>
+            <td class="num">${texp.toLocaleString()}</td>
+            <td class="num">${tnac.toLocaleString()}</td>
+            <td class="num">${te.toLocaleString()}</td>
+          </tr>
+          <tr style="font-size:10px;color:var(--text-muted)">
+            <td colspan="3" style="font-family:'DM Mono',monospace">Prom. diario</td>
+            <td class="num" colspan="2" style="font-family:'DM Mono',monospace">${days.filter(d=>d.empaque>0).length>0?(te/days.filter(d=>d.empaque>0).length).toFixed(0):0} cajas/día</td>
+            <td class="num" colspan="2" style="font-family:'DM Mono',monospace">×Hct: ${xhct}</td>
+            <td colspan="2"></td>
+          </tr>
+        </table>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('resum-sem-content').innerHTML=`<div style="padding:16px">${html}</div>`;
+}
+
+function renderDiario(){
+  const data=allData().filter(r=>r.corte>0||r.empaque>0);
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  let acumGlobal=0;
+  let diaNum=0;
+  const semRun={};
+
+  let html=`<tr style="font-size:10px">
+    <th style="min-width:22px">#</th>
+    <th style="min-width:36px">Día</th>
+    <th style="min-width:52px">Fecha</th>
+    <th class="num" style="min-width:46px">Corte</th>
+    <th class="num" style="min-width:52px">Empaque</th>
+    <th class="num" style="min-width:36px">%</th>
+    <th class="num" style="min-width:52px">Ac.Sem</th>
+    <th class="num" style="min-width:52px">Ac.Global</th>
+    <th class="num" style="min-width:44px">×Hct</th>
+    <th class="num" style="min-width:44px">Relac.</th>
+  </tr>`;
+
+  data.forEach(r=>{
+    diaNum++;
+    const sem=r.sem||r.semana||0;
+    semRun[sem]=(semRun[sem]||0)+r.empaque;
+    acumGlobal+=r.empaque;
+    const pct=r.corte>0?(r.empaque/r.corte*100).toFixed(0)+'%':'—';
+    const xhct=acumGlobal>0?(acumGlobal/18).toFixed(1):'—';
+    const relac=r.empaque>0?(r.corte/r.empaque).toFixed(2):'—';
+    const [y,m,d]=r.fecha.split('-');
+    const fechaStr=`${parseInt(d)} ${meses[parseInt(m)-1]}`;
+    const diaStr=(r.dia||'').slice(0,3);
+    const isLast=diaNum===data.length;
+    const rowStyle=isLast?'color:var(--green-300);font-weight:500':'';
+    html+=`<tr style="${rowStyle};font-size:11px">
+      <td>${diaNum}</td>
+      <td>${diaStr}</td>
+      <td>${fechaStr}</td>
+      <td class="num">${r.corte.toLocaleString()}</td>
+      <td class="num" style="color:${isLast?'inherit':'var(--green-400)'}">${r.empaque>0?r.empaque.toLocaleString():'—'}</td>
+      <td class="num">${pct}</td>
+      <td class="num">${semRun[sem].toLocaleString()}</td>
+      <td class="num">${acumGlobal.toLocaleString()}</td>
+      <td class="num">${xhct}</td>
+      <td class="num" style="color:var(--amber-light)">${relac}</td>
+    </tr>`;
+  });
+
+  const tc=data.reduce((s,r)=>s+r.corte,0);
+  const te=data.reduce((s,r)=>s+r.empaque,0);
+  const g='color:var(--green-300);font-weight:500';
+  html+=`<tr style="font-size:11px">
+    <td colspan="3" style="${g}">Total</td>
+    <td class="num" style="${g}">${tc.toLocaleString()}</td>
+    <td class="num" style="${g}">${te.toLocaleString()}</td>
+    <td class="num" style="${g}">${tc>0?(te/tc*100).toFixed(0)+'%':'—'}</td>
+    <td></td>
+    <td class="num" style="${g}">${te.toLocaleString()}</td>
+    <td class="num" style="${g}">${(te/18).toFixed(1)}</td>
+    <td class="num" style="${g}">${te>0?(tc/te).toFixed(2):'—'}</td>
+  </tr>`;
+
+  document.getElementById('diario-table').innerHTML=html;
+}
+
+function renderUltimoDia(data){
+  const conEmpaque=data.filter(r=>r.empaque>0);
+  if(!conEmpaque.length)return;
+  const ultimo=conEmpaque[conEmpaque.length-1];
+  const sem=ultimo.sem||ultimo.semana;
+  const acumSem=data.filter(r=>(r.sem||r.semana)===sem).reduce((s,r)=>s+r.empaque,0);
+  const idxUltimo=data.indexOf(ultimo);
+  const acumGlobal=data.slice(0,idxUltimo+1).reduce((s,r)=>s+r.empaque,0);
+  const pct=ultimo.corte>0?(ultimo.empaque/ultimo.corte*100).toFixed(1):'—';
+  const xhct=(acumGlobal/18).toFixed(1);
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const [y,m,d]=ultimo.fecha.split('-');
+  const fechaLabel=`${ultimo.dia||''} ${parseInt(d)} ${meses[parseInt(m)-1]}`;
+  document.getElementById('ud-fecha').textContent=fechaLabel;
+  document.getElementById('ud-corte').textContent=ultimo.corte.toLocaleString();
+  document.getElementById('ud-empaque').textContent=ultimo.empaque.toLocaleString();
+  document.getElementById('ud-pct').textContent=pct+'%';
+  document.getElementById('ud-acumsem').textContent=acumSem.toLocaleString();
+  document.getElementById('ud-acumglobal').textContent=acumGlobal.toLocaleString();
+  document.getElementById('ud-xhct').textContent=xhct;
+  const relacion=ultimo.empaque>0?(ultimo.corte/ultimo.empaque).toFixed(2):'—';
+  document.getElementById('ud-relacion').textContent=relacion;
+
+  // Desglose tipos de empaque
+  const tipos=[
+    {k:'jumbo',label:'JUMBO',color:'#185FA5'},
+    {k:'xl',label:'XL',color:'#378ADD'},
+    {k:'l',label:'L',color:'#85B7EB'},
+    {k:'m',label:'M',color:'#B5D4F4'},
+    {k:'s',label:'S',color:'#E6F1FB'},
+    {k:'eujumbo',label:'EU JUMBO',color:'#3B6D11'},
+    {k:'euxl',label:'EU XL',color:'#639922'},
+    {k:'rpc65',label:'RPC 65',color:'#97C459'},
+    {k:'rpc55',label:'RPC 55',color:'#C0DD97'},
+    {k:'choice',label:'Choice',color:'#BA7517'},
+    {k:'chrojo',label:'Ch Rojo',color:'#EF9F27'},
+    {k:'chsuntan',label:'Ch Suntan',color:'#FAC775'},
+    {k:'nacional',label:'Nacional',color:'#1D9E75'},
+  ];
+  const activos=tipos.filter(t=>(ultimo[t.k]||0)>0);
+  const tiposDiv=document.getElementById('ud-tipos');
+  const tiposGrid=document.getElementById('ud-tipos-grid');
+  if(activos.length>0){
+    tiposDiv.style.display='block';
+    tiposGrid.innerHTML=activos.map(t=>`
+      <div style="display:flex;align-items:center;gap:5px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:6px;padding:4px 8px">
+        <span style="width:7px;height:7px;border-radius:2px;background:${t.color};flex-shrink:0"></span>
+        <span style="font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace">${t.label}</span>
+        <span style="font-size:11px;font-weight:500;color:var(--text-primary);font-family:'DM Mono',monospace">${(ultimo[t.k]||0).toLocaleString()}</span>
+      </div>`).join('');
+  } else {
+    tiposDiv.style.display='none';
+  }
+}
+
+function renderAll(){
+  const d=allData();
+  const k=calcKPIs(d);
+  renderUltimoDia(d);
+  document.getElementById('kpi-total').textContent=k.te.toLocaleString();
+  document.getElementById('kpi-sub-total').textContent=`${k.tc.toLocaleString()} cortadas · sem ${Math.ceil(d.length/7)} de temporada`;
+  document.getElementById('kpi-bar-total').style.width=Math.min(100,(k.xhct/META_HCT*100)).toFixed(1)+'%';
+  document.getElementById('kpi-xhct').textContent=k.xhct.toFixed(1);
+  document.getElementById('kpi-efic').textContent=k.pct.toFixed(1)+'%';
+  document.getElementById('kpi-corte').textContent=k.tc.toLocaleString();
+  document.getElementById('kpi-prom').textContent=k.promDia.toLocaleString();
+  document.getElementById('kpi-prom-sub').textContent=`${k.dias} días con empaque`;
+  const relacion = k.te > 0 ? (k.tc / k.te).toFixed(2) : '—';
+  document.getElementById('kpi-relacion').textContent = relacion;
+  document.getElementById('acum-badge').textContent=k.te.toLocaleString()+' cajas';
+  renderChartDiario(d);
+  renderChartExpNac();
+  renderSemTable();
+  renderEmpaque(d);
+  renderHistorial();
+  renderDiario();
+  renderResumSemanal();
+  renderMensual();
+}
+
+function renderChartDiario(d){
+  const rows=d.filter(r=>r.corte>0||r.empaque>0);
+  const labels=rows.map(r=>r.dia.slice(0,3));
+  if(cDiario)cDiario.destroy();
+  cDiario=new Chart(document.getElementById('chart-diario'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Corte',data:rows.map(r=>r.corte),backgroundColor:'rgba(133,183,235,0.5)',borderRadius:2,order:2},
+      {label:'Empaque',data:rows.map(r=>r.empaque),backgroundColor:'#1D9E75',borderRadius:2,order:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:'#4d7060',font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:12}},
+              y:{ticks:{color:'#4d7060',font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}}}
+  });
+}
+
+function renderChartExpNac(){
+  const extra=loadExtra();
+  const sems=SEM_BASE.map(s=>({...s}));
+  extra.forEach(r=>{
+    let found=sems.find(s=>s.sem==r.semana);
+    if(!found){found={sem:r.semana,corte:0,empaque:0,exp:0,nac:0};sems.push(found);}
+    found.empaque+=r.empaque;
+    found.exp+=(r.empaque-(r.nacional||0));
+    found.nac+=(r.nacional||0);
+  });
+  sems.sort((a,b)=>a.sem-b.sem);
+  if(cExpNac)cExpNac.destroy();
+  cExpNac=new Chart(document.getElementById('chart-expnac'),{
+    type:'bar',
+    data:{labels:sems.map(s=>'S'+s.sem),datasets:[
+      {label:'Exp',data:sems.map(s=>s.exp),backgroundColor:'#378ADD',borderRadius:2},
+      {label:'Nac',data:sems.map(s=>s.nac),backgroundColor:'#1D9E75',borderRadius:2}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:'#4d7060',font:{size:10}}},
+              y:{stacked:true,ticks:{color:'#4d7060',font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}}}
+  });
+}
+
+function renderSemTable(){
+  const extra=loadExtra();
+  const sems=SEM_BASE.map(s=>({...s}));
+  extra.forEach(r=>{
+    let found=sems.find(s=>s.sem==r.semana);
+    if(!found){found={sem:r.semana,corte:0,empaque:0,exp:0,nac:0};sems.push(found);}
+    found.corte+=r.corte; found.empaque+=r.empaque;
+  });
+  sems.sort((a,b)=>a.sem-b.sem);
+  const tc=sems.reduce((a,s)=>a+s.corte,0);
+  const te=sems.reduce((a,s)=>a+s.empaque,0);
+  let html=`<tr><th>Sem</th><th class="num">Corte</th><th class="num">Empaque</th><th class="num">%</th><th class="num">×Hct</th></tr>`;
+  sems.forEach(s=>{
+    const pct=s.corte>0?(s.empaque/s.corte*100).toFixed(0):'—';
+    const xh=(s.empaque/18).toFixed(0);
+    html+=`<tr><td>Sem ${s.sem}</td><td class="num">${s.corte.toLocaleString()}</td><td class="num hi">${s.empaque.toLocaleString()}</td><td class="num">${pct}%</td><td class="num">${xh}</td></tr>`;
+  });
+  html+=`<tr><td>Total</td><td class="num">${tc.toLocaleString()}</td><td class="num">${te.toLocaleString()}</td><td class="num">${(te/tc*100).toFixed(0)}%</td><td class="num">${(te/18).toFixed(0)}</td></tr>`;
+  document.getElementById('sem-table').innerHTML=html;
+}
+
+function renderEmpaque(d){
+  const types=[
+    {k:'jumbo',label:'JUMBO',color:'#185FA5'},
+    {k:'xl',label:'XL',color:'#378ADD'},
+    {k:'l',label:'L',color:'#85B7EB'},
+    {k:'m',label:'M',color:'#B5D4F4'},
+    {k:'eujumbo',label:'EU JUMBO',color:'#3B6D11'},
+    {k:'euxl',label:'EU XL',color:'#639922'},
+    {k:'rpc65',label:'RPC 65',color:'#97C459'},
+    {k:'rpc55',label:'RPC 55',color:'#C0DD97'},
+    {k:'choice',label:'Choice',color:'#BA7517'},
+    {k:'chrojo',label:'Ch Rojo',color:'#EF9F27'},
+    {k:'chsuntan',label:'Ch Suntan',color:'#FAC775'},
+    {k:'nacional',label:'Nacional',color:'#1D9E75'},
+  ];
+  const totals={};
+  types.forEach(t=>totals[t.k]=d.reduce((s,r)=>s+(r[t.k]||0),0));
+  const grand=Object.values(totals).reduce((a,v)=>a+v,0)||1;
+  const maxV=Math.max(...Object.values(totals))||1;
+  let html='';
+  types.filter(t=>totals[t.k]>0).forEach(t=>{
+    const pct=(totals[t.k]/grand*100).toFixed(1);
+    html+=`<div class="emp-row">
+      <span class="emp-label">${t.label}</span>
+      <div class="emp-bar-bg"><div class="emp-bar-fill" style="width:${(totals[t.k]/maxV*100).toFixed(0)}%;background:${t.color}"></div></div>
+      <span class="emp-num">${totals[t.k].toLocaleString()} <span style="color:#4d7060">${pct}%</span></span>
+    </div>`;
+  });
+  document.getElementById('emp-list').innerHTML=html;
+  const active=types.filter(t=>totals[t.k]>0);
+  if(cDona)cDona.destroy();
+  cDona=new Chart(document.getElementById('chart-dona'),{
+    type:'doughnut',
+    data:{labels:active.map(t=>t.label),datasets:[{data:active.map(t=>totals[t.k]),backgroundColor:active.map(t=>t.color),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{position:'right',labels:{color:'#8aaa9a',font:{size:10,family:"'DM Mono',monospace"},padding:8,boxWidth:10}}}}
+  });
+}
+
+function renderHistorial(){
+  const extra=loadExtra();
+  const el=document.getElementById('log-list');
+  if(!extra.length){el.innerHTML='<div class="empty-msg">Sin registros capturados aún</div>';return;}
+  let html='';
+  [...extra].reverse().forEach((r,i)=>{
+    const realIdx=extra.length-1-i;
+    html+=`<div class="log-item">
+      <div class="log-header">
+        <span class="log-date">${r.dia} ${r.fecha}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="log-sem">Sem ${r.semana}</span>
+          <button class="btn-danger" onclick="delRec(${realIdx})">✕</button>
+        </div>
+      </div>
+      <div class="log-vals">
+        <div class="log-val"><span>Corte</span>${r.corte.toLocaleString()}</div>
+        <div class="log-val"><span>Empaque</span>${r.empaque.toLocaleString()}</div>
+        <div class="log-val"><span>×Hct</span>${(r.empaque/18).toFixed(1)}</div>
+        <div class="log-val"><span>Choice</span>${(r.choice||0).toLocaleString()}</div>
+        <div class="log-val"><span>Nacional</span>${(r.nacional||0).toLocaleString()}</div>
+        <div class="log-val"><span>Efic.</span>${r.corte>0?(r.empaque/r.corte*100).toFixed(0):'—'}%</div>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+window.delRec=function(i){
+  const extra=loadExtra();extra.splice(i,1);saveExtra(extra);renderAll();
+};
+
+function showAlert(msg,type='ok'){
+  const el=document.getElementById('alert-global');
+  el.className='alert show alert-'+type;
+  el.textContent=msg;
+  setTimeout(()=>{el.className='alert'},3000);
+}
+
+document.getElementById('btn-guardar').addEventListener('click',()=>{
+  const fecha=document.getElementById('f-fecha').value;
+  const semana=+document.getElementById('f-semana').value;
+  const corte=+document.getElementById('f-corte').value||0;
+  const empaque=+document.getElementById('f-empaque').value||0;
+  if(!fecha||!semana){showAlert('Ingresa fecha y número de semana','err');return;}
+  const rec={
+    fecha,dia:document.getElementById('f-dia').value,semana,corte,empaque,
+    jumbo:+document.getElementById('f-jumbo').value||0,
+    xl:+document.getElementById('f-xl').value||0,
+    l:+document.getElementById('f-l').value||0,
+    m:+document.getElementById('f-m').value||0,
+    s:+document.getElementById('f-s').value||0,
+    eujumbo:+document.getElementById('f-eujumbo').value||0,
+    euxl:+document.getElementById('f-euxl').value||0,
+    rpc65:+document.getElementById('f-rpc65').value||0,
+    rpc55:+document.getElementById('f-rpc55').value||0,
+    choice:+document.getElementById('f-choice').value||0,
+    chrojo:+document.getElementById('f-chrojo').value||0,
+    chsuntan:+document.getElementById('f-chsuntan').value||0,
+    nacional:+document.getElementById('f-nacional').value||0,
+    destino:document.getElementById('f-destino').value
+  };
+  const extra=loadExtra();extra.push(rec);saveExtra(extra);
+  showAlert(`✓ ${empaque.toLocaleString()} cajas guardadas — ${fecha}`);
+  ['f-corte','f-empaque','f-jumbo','f-xl','f-l','f-m','f-s','f-eujumbo','f-euxl','f-rpc65','f-rpc55','f-choice','f-chrojo','f-chsuntan','f-nacional'].forEach(id=>document.getElementById(id).value='');
+  renderAll();
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn')[3].classList.remove('active');
+  document.querySelectorAll('.nav-btn')[0].classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-resumen').classList.add('active');
+});
+
+
+document.getElementById('btn-limpiar').addEventListener('click',function(){
+  if(confirm('¿Eliminar todos los registros capturados?')){saveExtra([]);renderAll();}
+});
+
+
+document.querySelector('.bottom-nav').addEventListener('click',e=>{
+  const btn=e.target.closest('.nav-btn');
+  if(!btn)return;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  document.querySelector('.main').scrollTop=0;
+});
+
+function fmtDate(d){
+  if(!d)return'—';
+  const [y,m,day]=d.split('-');
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return `${parseInt(day)} ${meses[parseInt(m)-1]}`;
+}
+
+function renderCargas(){
+  const cargas=allCargas();
+  const extraCargas=loadCargas();
+  const totalCajas=cargas.reduce((s,c)=>s+c.cajas,0);
+  const totalPallets=cargas.reduce((s,c)=>s+c.pallets,0);
+  const promPallets=cargas.length>0?(totalPallets/cargas.length).toFixed(1):'—';
+  document.getElementById('c-total').textContent=cargas.length;
+  document.getElementById('c-cajas').textContent=totalCajas.toLocaleString();
+  document.getElementById('c-pallets').textContent=totalPallets.toFixed(0);
+  document.getElementById('c-pallets-sub').textContent=`prom. ${promPallets} × carga`;
+  let html=`<tr><th>#</th><th>Sale</th><th>Llega</th><th class="num">Cajas</th><th>Manifiesto</th><th class="num">Pallets</th><th></th></tr>`;
+  cargas.forEach((c,i)=>{
+    const isExtra=i>=CARGAS_BASE.length;
+    const extraIdx=i-CARGAS_BASE.length;
+    const del=isExtra?`<button class="btn-danger" onclick="delCarga(${extraIdx})">✕</button>`:'';
+    html+=`<tr>
+      <td>${i+1}</td>
+      <td>${fmtDate(c.sale)}</td>
+      <td>${fmtDate(c.llega)}</td>
+      <td class="num hi">${c.cajas.toLocaleString()}</td>
+      <td style="font-size:11px">${c.manifiesto}</td>
+      <td class="num">${c.pallets.toFixed(1)}</td>
+      <td>${del}</td>
+    </tr>`;
+  });
+  html+=`<tr>
+    <td colspan="3" style="color:var(--green-300);font-weight:500;padding-top:10px">Total</td>
+    <td class="num" style="color:var(--green-300);font-weight:500">${totalCajas.toLocaleString()}</td>
+    <td></td>
+    <td class="num" style="color:var(--green-300);font-weight:500">${totalPallets.toFixed(1)}</td>
+    <td></td>
+  </tr>`;
+  document.getElementById('cargas-table').innerHTML=html;
+}
+
+window.delCarga=function(i){
+  const extra=loadCargas();extra.splice(i,1);saveCargas(extra);renderCargas();
+};
+
+document.getElementById('btn-carga').addEventListener('click',()=>{
+  const sale=document.getElementById('c-fecha-sale').value;
+  const llega=document.getElementById('c-fecha-llega').value;
+  const cajas=+document.getElementById('c-cajas-input').value||0;
+  const pallets=+document.getElementById('c-pallets-input').value||0;
+  const manifiesto=document.getElementById('c-manifiesto').value.trim();
+  if(!sale||!cajas||!manifiesto){showAlert('Ingresa fecha de salida, cajas y manifiesto','err');return;}
+  const extra=loadCargas();
+  extra.push({sale,llega,cajas,pallets,manifiesto});
+  saveCargas(extra);
+  showAlert(`✓ Carga ${manifiesto} registrada — ${cajas.toLocaleString()} cajas`);
+  ['c-cajas-input','c-pallets-input','c-manifiesto'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-fecha-llega').value='';
+  renderCargas();
+  renderDiario();
+});
+
+// Set today's date as default
+document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
+document.getElementById('c-fecha-sale').value=new Date().toISOString().slice(0,10);
+
+renderAll();
+renderCargas();
+</script>
+</body>
+</html>
